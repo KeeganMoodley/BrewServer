@@ -1,6 +1,7 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,6 +37,8 @@ public class Connection extends Thread {
     private static final String FETCH_HISTORY = "#FETCH_HISTORY";
     private static final String DEREGISTER_DISPATCH = "#DEREGISTER";
 //    private static final String TEST="#TEST_RUN";
+
+    private static final String GET_STOCK = "#GET_STOCK";
 
     public Connection(Main server, Socket socket) {
         this.server = server;
@@ -134,6 +137,11 @@ public class Connection extends Thread {
 //                                server.Odd_Test7();
 //                            }
 //                            break;
+
+                        //Request food
+                        case GET_STOCK:
+                            server.sendFood();
+                            sendFood();
                         default:
                             System.out.printf("Unknown command '%s' received from user with username '%s'/n", command, username);
                             break;
@@ -161,6 +169,22 @@ public class Connection extends Thread {
                     System.out.println("Socket closed.");
             } catch (Exception e) {
             }
+        }
+    }
+
+    private void sendFood() {
+        outLock.lock();
+        Food food = DB_Controller.foods.get(0);
+        try {
+            out.writeUTF(GET_STOCK);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            objectOutputStream.writeObject(food);
+            out.flush();
+            objectOutputStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            outLock.unlock();
         }
     }
 

@@ -20,6 +20,8 @@ public class DB_Controller {
     private static String timeString;
     private static ArrayList<Block> blocks;
 
+    static ArrayList<Food> foods = new ArrayList<>();
+
     /*
     The below method opens the connection to the database and creates a statement
     which enables the other methods to communicate with the database.
@@ -252,6 +254,48 @@ public class DB_Controller {
         }
         String removal = "DELETE FROM [Order] WHERE time='" + time + "' AND user_ID='" + userID + "'";
         stat.execute(removal);
+        try {
+            CloseConnection();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Obtain food from database
+     *
+     * @throws SQLException
+     */
+    public static void getFood() throws SQLException {
+        try {
+            OpenConnection();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        String sql = "SELECT * FROM [STOCK]";
+        ResultSet resultSet = stat.executeQuery(sql);
+
+        while (resultSet.next()) {
+            String id = resultSet.getString("stock_ID");
+            int type = resultSet.getInt("type"); //1 is solid, 2 is liquid, 3 is packaged
+            int pic = resultSet.getInt("picture");
+            int price = resultSet.getInt("price");
+            String title = resultSet.getString("title");
+            String nutrition = resultSet.getString("nutrition");
+            String dietary = resultSet.getString("nutrition");
+            //boolean halaal = false;
+            int quantityAvailable = resultSet.getInt("quantity_available");
+
+            String sql1 = "SELECT * FROM [SOLID] WHERE stock_ID == '" + id + "'";
+            ResultSet rSet = stat.executeQuery(sql1);
+            double length = rSet.getFloat("length");
+            double width = rSet.getFloat("width");
+            double height = rSet.getFloat("height");
+            switch (type) {
+                case 1: foods.add(new Solid(pic, price, title, nutrition, dietary, false, quantityAvailable, length, width, height));
+            }
+        }
+
         try {
             CloseConnection();
         } catch (Exception e) {

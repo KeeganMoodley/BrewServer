@@ -403,6 +403,16 @@ public class Main {
         }
     }
 
+    public void sendFood() {
+        connectionLock.lock();
+        try {
+            DB_Controller.getFood();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        connectionLock.unlock();
+    }
+
     public void fetchHistory(String date, Connection connection) {
         dispatchLock.lock();
         try {
