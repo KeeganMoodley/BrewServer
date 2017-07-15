@@ -119,6 +119,11 @@ public class Connection extends Thread {
                             String date = in.readUTF();
                             server.fetchHistory(date, this);
                             break;
+                        case GET_STOCK:
+                            System.out.println("Received #GET_STOCK command");
+                            server.sendFood();
+                            sendFood();
+                            break;
                         case DEREGISTER_DISPATCH:
                             String key = in.readUTF();
                             server.deregisterDispatch(key, this);
@@ -139,9 +144,6 @@ public class Connection extends Thread {
 //                            break;
 
                         //Request food
-                        case GET_STOCK:
-                            server.sendFood();
-                            sendFood();
                         default:
                             System.out.printf("Unknown command '%s' received from user with username '%s'/n", command, username);
                             break;
@@ -174,13 +176,56 @@ public class Connection extends Thread {
 
     private void sendFood() {
         outLock.lock();
-        Food food = DB_Controller.foods.get(0);
+        //Solid food = (Solid) DB_Controller.foods.get(0);
         try {
             out.writeUTF(GET_STOCK);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-            objectOutputStream.writeObject(food);
+            out.writeInt(DB_Controller.foods.size()); //number of food items to be sent
+            for (Food food : DB_Controller.foods) {
+                int id = food.getId();
+                int type = food.getType(); //1 is solid, 2 is liquid, 3 is packaged
+                byte[] pic = food.getImage();
+
+                double price = food.getPrice();
+                String title = food.getTitle();
+                String nutrition = food.getNutrition();
+                String dietary = food.getDietary();
+                boolean halaal = food.isHalaal();
+                int quantityAvailable = food.getQuantityAvailable();
+                System.out.println(id);
+                /*String sql1 = "SELECT * FROM [SOLID] WHERE stock_ID ='" + id + "'";
+                ResultSet rSet = stat.executeQuery(sql1);
+                double length = rSet.getFloat("length");
+                double width = rSet.getFloat("width");
+                double height = rSet.getFloat("height");*/
+                double length = food.getLength();
+                double width = food.getWidth();
+                double height = food.getHeight();
+                double volume = food.getVolume();
+
+                out.writeInt(id);
+                out.writeInt(type);
+
+
+                //out.write(pic);
+                out.writeInt(pic.length); //Send byte[] length
+                out.write(pic, 0, pic.length);
+
+
+                out.writeDouble(price);
+                out.writeUTF(title);
+                out.writeUTF(nutrition);
+                out.writeUTF(dietary);
+                out.writeBoolean(halaal);
+                out.writeInt(quantityAvailable);
+                out.writeDouble(length);
+                out.writeDouble(width);
+                out.writeDouble(height);
+                out.writeDouble(volume);
+            }
             out.flush();
-            objectOutputStream.flush();
+            System.out.println("Food is sent to phone");
+            DB_Controller.foods.clear();
+            //objectOutputStream.flush();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

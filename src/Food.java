@@ -1,13 +1,17 @@
+import java.io.Serializable;
+
+
 /**
  * Created by s214079694 on 2017/07/01.
  */
-public abstract class Food {
-    int image, quantity, quantityAvailable;
-    double price;
-    String title, nutrition, dietary;
-    boolean halaal;
+public class Food implements Serializable {
+    private int quantity, quantityAvailable, id, type;
+    private double price, length, width, height, volume;
+    private String title, nutrition, dietary;
+    private boolean halaal;
+    private byte[] image;
 
-    public Food(int image, double price, String title, String nutrition, String dietary, boolean halaal, int quantityAvailable) {
+    public Food(int id, int type, byte[] image, double price, String title, String nutrition, String dietary, boolean halaal, int quantityAvailable, double length, double width, double height, double volume) {
         this.image = image;
         this.price = price;
         this.title = title;
@@ -16,22 +20,20 @@ public abstract class Food {
         this.quantityAvailable = quantityAvailable;
         this.nutrition = nutrition;
         this.dietary = dietary;
+        this.id = id;
+        this.type = type;
+        this.length = length;
+        this.width = width;
+        this.height = height;
+        this.volume = volume;
     }
 
-    public int getImage() {
+    public byte[] getImage() {
         return image;
     }
 
-    public void setImage(int image) {
+    public void setImage(byte[] image) {
         this.image = image;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
     }
 
     public int getQuantity() {
@@ -42,6 +44,70 @@ public abstract class Food {
         this.quantity = quantity;
     }
 
+    public int getQuantityAvailable() {
+        return quantityAvailable;
+    }
+
+    public void setQuantityAvailable(int quantityAvailable) {
+        this.quantityAvailable = quantityAvailable;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public double getLength() {
+        return length;
+    }
+
+    public void setLength(double length) {
+        this.length = length;
+    }
+
+    public double getWidth() {
+        return width;
+    }
+
+    public void setWidth(double width) {
+        this.width = width;
+    }
+
+    public double getHeight() {
+        return height;
+    }
+
+    public void setHeight(double height) {
+        this.height = height;
+    }
+
+    public double getVolume() {
+        return volume;
+    }
+
+    public void setVolume(double volume) {
+        this.volume = volume;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -50,16 +116,28 @@ public abstract class Food {
         this.title = title;
     }
 
+    public String getNutrition() {
+        return nutrition;
+    }
+
+    public void setNutrition(String nutrition) {
+        this.nutrition = nutrition;
+    }
+
+    public String getDietary() {
+        return dietary;
+    }
+
+    public void setDietary(String dietary) {
+        this.dietary = dietary;
+    }
+
     public boolean isHalaal() {
         return halaal;
     }
 
     public void setHalaal(boolean halaal) {
         this.halaal = halaal;
-    }
-
-    public double getTotal() {
-        return quantity * price;
     }
 }
 

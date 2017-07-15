@@ -1,6 +1,7 @@
 import javafx.util.Pair;
 
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
@@ -511,6 +512,7 @@ public class Main {
         try {
             System.out.println("Initiating Server...");
             server = new ServerSocket(8050);
+            System.out.println(InetAddress.getLocalHost().getHostAddress()); //10.112.49.25
 
             while (true) {
                 Socket socket = server.accept();
@@ -522,6 +524,7 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
             Thread.sleep(100);
+            System.out.println("Connection failed");
         } finally {
             server.close();
         }

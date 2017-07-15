@@ -1,5 +1,7 @@
 import javafx.util.Pair;
 
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.*;
 import java.text.DateFormat;
@@ -269,36 +271,83 @@ public class DB_Controller {
     public static void getFood() throws SQLException {
         try {
             OpenConnection();
+            String sql = "SELECT * FROM [STOCK]";
+            ResultSet resultSet = stat.executeQuery(sql);
+
+            while (resultSet.next()) {
+                int id = resultSet.getInt("stock_ID");
+                int type = resultSet.getInt("type"); //1 is solid, 2 is liquid, 3 is packaged
+                /*int pic = resultSet.getInt("picture");
+                Blob blob = resultSet.getBlob("picture");*/
+                /*byte[] decodeString = Base64.decode(rs, Base64.DEFAULT);
+
+                Bitmap decodebitmap = BitmapFactory.decodeByteArray(decodeString, 0, decodeString.length);*/
+
+                //img.setImageBitmap(decodebitmap);
+
+
+                //byte pic = resultSet.getByte("picture");
+                byte[] pic = resultSet.getBytes("picture");
+
+                double price = resultSet.getDouble("price");
+                String title = resultSet.getString("title");
+                String nutrition = resultSet.getString("ingredients");
+                String dietary = resultSet.getString("dietary");
+                boolean halaal = false;
+                int quantityAvailable = resultSet.getInt("quantity_available");
+                System.out.println(id);
+                /*String sql1 = "SELECT * FROM [SOLID] WHERE stock_ID ='" + id + "'";
+                ResultSet rSet = stat.executeQuery(sql1);
+                double length = rSet.getFloat("length");
+                double width = rSet.getFloat("width");
+                double height = rSet.getFloat("height");*/
+                double length = 0;
+                double width = 0;
+                double height = 0;
+                double volume = 0;
+                /*switch (type) {
+                    case 1: foods.add(new Solid(0, price, title, nutrition, dietary, false, quantityAvailable, length, width, height));
+                }*/
+                foods.add(new Food(id, type, pic, price, title, nutrition, dietary, halaal, quantityAvailable, length, width, height, volume));
+            }
+            System.out.println("Number of food items = " + foods.size());
         } catch (Exception e) {
             e.printStackTrace();
+            System.out.println("Not working");
         }
-        String sql = "SELECT * FROM [STOCK]";
-        ResultSet resultSet = stat.executeQuery(sql);
 
-        while (resultSet.next()) {
-            String id = resultSet.getString("stock_ID");
-            int type = resultSet.getInt("type"); //1 is solid, 2 is liquid, 3 is packaged
-            int pic = resultSet.getInt("picture");
-            int price = resultSet.getInt("price");
-            String title = resultSet.getString("title");
-            String nutrition = resultSet.getString("nutrition");
-            String dietary = resultSet.getString("nutrition");
-            //boolean halaal = false;
-            int quantityAvailable = resultSet.getInt("quantity_available");
-
-            String sql1 = "SELECT * FROM [SOLID] WHERE stock_ID == '" + id + "'";
-            ResultSet rSet = stat.executeQuery(sql1);
-            double length = rSet.getFloat("length");
-            double width = rSet.getFloat("width");
-            double height = rSet.getFloat("height");
-            switch (type) {
-                case 1: foods.add(new Solid(pic, price, title, nutrition, dietary, false, quantityAvailable, length, width, height));
-            }
-        }
 
         try {
             CloseConnection();
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void getImageData(Connection conn)
+    {
+
+        byte[] fileBytes;
+        String query;
+        try
+        {
+            query = "select data from tableimage";
+            Statement state = conn.createStatement();
+            ResultSet rs = state.executeQuery(query);
+            if (rs.next())
+            {
+                fileBytes = rs.getBytes(1);
+                OutputStream targetFile=
+                        new FileOutputStream(
+                                "d://filepath//new.JPG");
+
+                targetFile.write(fileBytes);
+                targetFile.close();
+            }
+
+        }
+        catch (Exception e)
+        {
             e.printStackTrace();
         }
     }
