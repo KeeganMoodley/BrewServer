@@ -11,25 +11,25 @@ public class Order {
     private Double total;
     private String user;
     private String androidIndex;
-    private Block block=null;
+    private Block block = null;
     private Block realBlock;
     private Integer rowNumber;
-    private Integer seat=null;
+    private Integer seat = null;
     private Integer realSeat;
     private Date date;
-    private ArrayList<Order> links=null;
+    private ArrayList<Order> links = null;
 
     public Order(Integer orderID, Block realBlock, Integer rowNumber, Integer quantity, Double total, String user, Integer realSeat, String androidIndex, Date time) {
         this.orderID = orderID;
         this.realBlock = realBlock;
         this.rowNumber = rowNumber;
-        this.date =time;
+        this.date = time;
         this.quantity = quantity;
         this.total = total;
         this.user = user;
-        this.androidIndex=androidIndex;
+        this.androidIndex = androidIndex;
         this.realSeat = realSeat;
-        this.links=new ArrayList<>();
+        this.links = new ArrayList<>();
     }
 
     public String getAndroidIndex() {
@@ -76,7 +76,7 @@ public class Order {
         this.links = links;
     }
 
-    public void addLink(Order link){
+    public void addLink(Order link) {
         links.add(link);
     }
 

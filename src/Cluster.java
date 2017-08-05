@@ -15,15 +15,15 @@ public class Cluster {
         this.income = income;
     }
 
-    public void addAmount(Double amount){
-        this.income+=amount;
+    public void addAmount(Double amount) {
+        this.income += amount;
     }
 
-    public void addQuantity(Integer i){
-        this.quantity+=i;
+    public void addQuantity(Integer i) {
+        this.quantity += i;
     }
 
-    public void add(Order order){
+    public void add(Order order) {
         orders.add(order);
     }
 
@@ -31,17 +31,17 @@ public class Cluster {
         return orders;
     }
 
-    public Order get(int i){
+    public Order get(int i) {
         return orders.get(i);
     }
 
-    public void remove(Order i){
+    public void remove(Order i) {
         orders.remove(i);
-        income-=i.getTotal();
-        quantity-=i.getQuantity();
+        income -= i.getTotal();
+        quantity -= i.getQuantity();
     }
 
-    public int size(){
+    public int size() {
         return orders.size();
     }
 

@@ -113,11 +113,11 @@ public class Main {
         }
     }
 
-    public void triggerOrderInsert(String quantity, String block, String row, String seat, String setting, String user, String androidIndex, Connection connection, Boolean test) {
+    public void triggerOrderInsert(String quantity, String block, String row, String seat, String user, String androidIndex, Connection connection, Boolean test, ArrayList<FoodUpdate> foodUpdates, double total, boolean cash) {
         connectionLock.lock();
         doNotAdd = false;
         try {
-            if (setting.equals("no_setting")) {
+            //if (setting.equals("no_setting")) {
                 String initialBlock = block;
                 String initialSeat = seat;
                 String oddCase = null;
@@ -136,7 +136,7 @@ public class Main {
                     }
                 }
                 Integer quant = Integer.parseInt(quantity);
-                Double total = quant * price;
+                //Double total = quant * price;
                 Block B = DB_Controller.returnRealBlock(block);
                 Block virtual = mapToVirtual(seat, B, null, row);
 
@@ -160,7 +160,8 @@ public class Main {
                 }
 
                 if (active) {
-                    Integer orderID = DB_Controller.insertOrder(quantity, total, virtual.getName(), row, seat, user);
+                    Integer orderID = DB_Controller.insertOrder(quantity, total, virtual.getName(), row, seat, user, foodUpdates, cash); //insert into order table
+                    DB_Controller.insertOrderLine(foodUpdates);
                     Date dateStamp = new Date();
                     Order newO = new Order(orderID, B, Integer.parseInt(row), quant, total, user, Integer.parseInt(seat), androidIndex, dateStamp);
                     mapToVirtual(seat, B, newO, row);
@@ -206,12 +207,24 @@ public class Main {
                 } else {
                     connection.notifyDispatchDown();
                 }
-            } else {
+            /*} else {
                 DB_Controller.initiateUpdate(block, row, seat, user);
                 connection.notifyLocationUpdate();
-            }
+            }*/
         } catch (Exception e) {
             System.out.println("Insertion Error");
+        } finally {
+            connectionLock.unlock();
+        }
+    }
+
+    public void changeLocation(String block, String row, String seat, String user, Connection connection) {
+        connectionLock.lock();
+        try {
+            DB_Controller.initiateUpdate(block, row, seat, user);
+            connection.notifyLocationUpdate();
+        } catch (Exception e) {
+            System.out.println("Location change error");
         } finally {
             connectionLock.unlock();
         }

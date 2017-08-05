@@ -36,6 +36,7 @@ public class Connection extends Thread {
     private static final String DISPATCH_REGISTRATION = "#DISPATCH_REGISTRATION";
     private static final String FETCH_HISTORY = "#FETCH_HISTORY";
     private static final String DEREGISTER_DISPATCH = "#DEREGISTER";
+    private static final String CHANGE_LOCATION = "#CHANGE_LOCATION";
 //    private static final String TEST="#TEST_RUN";
 
     private static final String GET_STOCK = "#GET_STOCK";
@@ -76,10 +77,28 @@ public class Connection extends Thread {
                             String block = in.readUTF();
                             String row = in.readUTF();
                             String seat = in.readUTF();
-                            String setting = in.readUTF();
+                            //String setting = in.readUTF();
                             String user1 = in.readUTF();
                             String androidIndex = String.valueOf(new Date());
-                            server.triggerOrderInsert(quantity, block, row, seat, setting, user1, androidIndex, this, false);
+
+                            //My code
+                            double total = in.readDouble();
+                            int size = in.readInt();
+                            ArrayList<FoodUpdate> foodUpdates = new ArrayList<>();
+                            for (int i = 0; i < size; i++) {
+                                int id = in.readInt();
+                                int q = in.readInt();
+                                foodUpdates.add(new FoodUpdate(id, q));
+                            }
+                            boolean cash = in.readBoolean();
+                            server.triggerOrderInsert(quantity, block, row, seat, user1, androidIndex, this, false, foodUpdates, total, cash);
+                            break;
+                        case CHANGE_LOCATION:
+                            String block1 = in.readUTF();
+                            String row1 = in.readUTF();
+                            String seat1 = in.readUTF();
+                            String user4 = in.readUTF();
+                            server.changeLocation(block1, row1, seat1, user4, this);
                             break;
                         case ORDER_REMOVAL_COMMAND:
                             String time = in.readUTF();

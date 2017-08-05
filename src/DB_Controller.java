@@ -178,7 +178,7 @@ public class DB_Controller {
         return ID;
     }
 
-    public static Integer insertOrder(String quantity, Double price, String block, String row, String seat, String user) throws SQLException {
+    public static Integer insertOrder(String quantity, Double price, String block, String row, String seat, String user, ArrayList<FoodUpdate> foodUpdates, boolean cash) throws SQLException {
         try {
             OpenConnection();
         } catch (Exception e) {
@@ -198,11 +198,30 @@ public class DB_Controller {
         deliveryString = dateFormat2.format(cal.getTime());
 
         Integer ID = updateLocation(block, row, seat, user);
+        try {
+            //String sql = "INSERT INTO ORDER(quantity, date, time, delivery_time, amount_due, user_ID, quantity_in_total, total_amount_due, payment_method) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            //PreparedStatement preparedStatement = connect.prepareStatement(sql);
+            //preparedStatement.setInt(1, Integer.parseInt(quantity));
+            //preparedStatement.setDate(2, java.sql.Date.valueOf(dateString));
 
-        String insertOrder = "INSERT INTO [Order] VALUES (" + Integer.parseInt(quantity) + ",'" + dateString + "','" + timeString + "','" + deliveryString + "'," + price + "," + ID + ")";
-        stat.execute(insertOrder);
+            //String insertOrder = "INSERT INTO [ORDER] VALUES (" + Integer.parseInt(quantity) + ",'" + dateString + "','" + timeString + "','" + deliveryString + "','" + price + "','" + ID + "','" + quantity + "','" + price + "','" + cash + "')";
+            int cashValue = (cash) ? 1 : 0;
+            //[order_ID],[date],[time],[delivery_time],[user_ID],[quantity_in_total],[total_amount_due],[payment_method]
+            String insertOrder = "INSERT INTO [Order] VALUES ('" + dateString + "','" + timeString + "','" + deliveryString + "'," + ID + "," + Integer.parseInt(quantity) + "," + price + "," + cashValue + ")";
+            boolean correct = stat.execute(insertOrder);
+            //int correct = stat.executeUpdate(insertOrder);
 
-        String getID = "SELECT order_ID FROM [Order] WHERE time='" + timeString + "' AND user_ID='" + ID + "'";
+            //int correct = preparedStatement.executeUpdate();
+            if (correct)
+                System.out.println("data is inserted");
+            else
+                System.out.println("error with insertion");
+        } catch (Exception e) {
+            System.out.println("insert:\t" + e.getMessage());
+        }
+
+
+        String getID = "SELECT order_ID FROM [ORDER] WHERE time='" + timeString + "' AND user_ID='" + ID + "'";
         ResultSet result = stat.executeQuery(getID);
         Integer id = -1;
         while (result.next()) {
@@ -324,20 +343,17 @@ public class DB_Controller {
         }
     }
 
-    public void getImageData(Connection conn)
-    {
+    public void getImageData(Connection conn) {
 
         byte[] fileBytes;
         String query;
-        try
-        {
+        try {
             query = "select data from tableimage";
             Statement state = conn.createStatement();
             ResultSet rs = state.executeQuery(query);
-            if (rs.next())
-            {
+            if (rs.next()) {
                 fileBytes = rs.getBytes(1);
-                OutputStream targetFile=
+                OutputStream targetFile =
                         new FileOutputStream(
                                 "d://filepath//new.JPG");
 
@@ -345,9 +361,7 @@ public class DB_Controller {
                 targetFile.close();
             }
 
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -835,6 +849,28 @@ public class DB_Controller {
 
     public static String getTimeString() {
         return timeString;
+    }
+
+    public static void insertOrderLine(ArrayList<FoodUpdate> foodUpdates) {
+        try {
+            getFood();
+            OpenConnection();
+            for (FoodUpdate f : foodUpdates) {
+                int stockID = f.getId();
+                int quantity = f.getQuantity();
+                double amount = -1;
+                for (Food food : foods) {
+                    if (stockID == food.getId())
+                        amount = quantity * food.getPrice();
+                }
+                String insertOrderLine = "INSERT INTO [Order_Line] VALUES (" + quantity + "," + amount + "," + stockID + ")";
+                stat.execute(insertOrderLine);
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        } finally {
+            foods.clear();
+        }
     }
 
     public static class beerCountComparator implements Comparator<Integer> {

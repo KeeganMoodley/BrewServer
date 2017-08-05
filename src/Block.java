@@ -4,7 +4,7 @@ import java.util.ArrayList;
 /**
  * Created by s213463695 on 2016/07/02.
  */
-public class Block implements Serializable{
+public class Block implements Serializable {
 
     private String name;
     private ArrayList<Row> rows;
@@ -21,7 +21,7 @@ public class Block implements Serializable{
     public Block(String name, String realName, ArrayList<Row> rows, Integer blockID, Double leftEntryDistance, Double rightEntryDistance, Double pathLength, Double pathWidth, Double seatWidth, Integer leftEntryRow, Integer rightEntryRow) {
         this.name = name;
         this.rows = rows;
-        this.realName=realName;
+        this.realName = realName;
         this.blockID = blockID;
         this.leftEntryDistance = leftEntryDistance;
         this.rightEntryDistance = rightEntryDistance;
@@ -77,11 +77,11 @@ public class Block implements Serializable{
     }
 
     public void addRow(Integer i, Integer seatC) {
-        Row newR=new Row(i,seatC);
+        Row newR = new Row(i, seatC);
         rows.add(newR);
     }
 
-    public class Row implements Serializable{
+    public class Row implements Serializable {
         private Integer number;
         private Integer seatCount;
 
