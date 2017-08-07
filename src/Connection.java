@@ -1,7 +1,6 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -337,7 +336,7 @@ public class Connection extends Thread {
         }
     }
 
-    public void notifyOrderInsertion(String time, String date, String quantity, Double price, String androidIndex) {
+    public void notifyOrderInsertion(String time, String date, String quantity, Double price, String androidIndex, int minute) {
         outLock.lock();
         try {
             String priceString = String.valueOf(price);
@@ -347,6 +346,7 @@ public class Connection extends Thread {
             out.writeUTF(quantity);
             out.writeUTF(priceString);
             out.writeUTF(androidIndex);
+            out.writeInt(minute);
             out.flush();
         } catch (Exception e) {
             e.printStackTrace();
@@ -511,7 +511,7 @@ public class Connection extends Thread {
         }
     }
 
-    public void addToDesktop(Integer orderID, String block, String row, String seat, String user, String quantity, Double total, String time) {
+    public void addToDesktop(Integer orderID, String block, String row, String seat, String user, String quantity, Double total, String time, ArrayList<FoodUpdate> foodUpdates) {
         outLock.lock();
         try {
             out.writeUTF("#ADD_TO_DESKTOP");
@@ -523,7 +523,24 @@ public class Connection extends Thread {
             out.writeUTF(quantity);
             out.writeUTF(String.valueOf(total));
             out.writeUTF(time);
+            DB_Controller.getFood();
+            out.writeInt(foodUpdates.size());
+            for (FoodUpdate foodUpdate : foodUpdates) {
+                out.writeInt(foodUpdate.getId());
+                out.writeInt(foodUpdate.getQuantity());
+                Food food = null;
+                for (Food f : DB_Controller.foods) {
+                    if (f.getId() == foodUpdate.getId())
+                        food = f;
+                }
+                if (food != null) {
+                    out.writeInt(food.getImage().length);
+                    out.write(food.getImage());
+                    out.writeUTF(food.getTitle());
+                }
+            }
             out.flush();
+            DB_Controller.foods.clear();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

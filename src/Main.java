@@ -173,7 +173,7 @@ public class Main {
                         Integer blockName = Integer.parseInt(virtual.getName());
                         if (blockName % 2 == 0) {
                             Connection con = dispatchConnections.get(virtual.getName());
-                            con.addToDesktop(orderID, initialBlock, row, initialSeat, user, quantity, total, time);
+                            con.addToDesktop(orderID, initialBlock, row, initialSeat, user, quantity, total, time, foodUpdates);
                         } else {
                             String prevDispatch = "";
                             String nextDispatch = "";
@@ -192,15 +192,15 @@ public class Main {
                             }
                             Connection con1 = dispatchConnections.get(prevDispatch);
                             Connection con2 = dispatchConnections.get(nextDispatch);
-                            con1.addToDesktop(orderID, initialBlock, row, initialSeat, user, quantity, total, time);
-                            con2.addToDesktop(orderID, initialBlock, row, initialSeat, user, quantity, total, time);
+                            con1.addToDesktop(orderID, initialBlock, row, initialSeat, user, quantity, total, time, foodUpdates);
+                            con2.addToDesktop(orderID, initialBlock, row, initialSeat, user, quantity, total, time, foodUpdates);
                         }
                         if (!test)
-                            connection.notifyOrderInsertion(time, date, quantity, total, androidIndex);
+                            connection.notifyOrderInsertion(time, date, quantity, total, androidIndex, DB_Controller.getAmount());
                     } else {
                         doNotAdd = false;
                         if (!test) {
-                            connection.notifyOrderInsertion(time, date, quantity, total, androidIndex);
+                            connection.notifyOrderInsertion(time, date, quantity, total, androidIndex, DB_Controller.getAmount());
                             connection.notifyOrderDispatch(newO);
                         }
                     }
@@ -260,7 +260,7 @@ public class Main {
         try {
             Integer orderID = DB_Controller.getOrderID(time, username);
             String block = DB_Controller.getBlockName(orderID);
-            DB_Controller.removeOrder(time, username);
+            //DB_Controller.removeOrder(time, username);
             junction.removeOrder(username, orderID, block);
             removeFromDesktop(block, orderID, username);
             connection.notifyOrderRemoval(true, time);

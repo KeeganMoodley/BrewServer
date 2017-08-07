@@ -5,13 +5,13 @@ import java.io.Serializable;
  * Created by s214079694 on 2017/07/01.
  */
 public class Food implements Serializable {
-    private int quantity, quantityAvailable, id, type;
-    private double price, length, width, height, volume;
+    private int quantity, quantityAvailable, id, type, prepTime;
+    private double price, length, width, height, volume = 0;
     private String title, nutrition, dietary;
     private boolean halaal;
     private byte[] image;
 
-    public Food(int id, int type, byte[] image, double price, String title, String nutrition, String dietary, boolean halaal, int quantityAvailable, double length, double width, double height, double volume) {
+    public Food(int id, int type, byte[] image, double price, String title, String nutrition, String dietary, boolean halaal, int quantityAvailable, double length, double width, double height, double volume, int prepTime) {
         this.image = image;
         this.price = price;
         this.title = title;
@@ -26,10 +26,15 @@ public class Food implements Serializable {
         this.width = width;
         this.height = height;
         this.volume = volume;
+        this.prepTime = prepTime;
     }
 
     public byte[] getImage() {
         return image;
+    }
+
+    public int getPrepTime() {
+        return prepTime;
     }
 
     public void setImage(byte[] image) {
@@ -138,6 +143,12 @@ public class Food implements Serializable {
 
     public void setHalaal(boolean halaal) {
         this.halaal = halaal;
+    }
+
+    public double getSize() {
+        if (volume == 0)
+            return length * width;
+        return volume;
     }
 }
 

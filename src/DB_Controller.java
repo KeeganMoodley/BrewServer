@@ -23,6 +23,7 @@ public class DB_Controller {
     private static ArrayList<Block> blocks;
 
     static ArrayList<Food> foods = new ArrayList<>();
+    private static int amount;
 
     /*
     The below method opens the connection to the database and creates a statement
@@ -194,9 +195,23 @@ public class DB_Controller {
 
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
-        cal.add(Calendar.MINUTE, 3);
+        amount = 0;
+        getFood();
+        try {
+            OpenConnection();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        for (FoodUpdate foodUpdate : foodUpdates) {
+            for (Food food : foods) {
+                if (food.getId() == foodUpdate.getId()) {
+                    amount += (foodUpdate.getQuantity() * food.getPrepTime());
+                }
+            }
+        }
+        cal.add(Calendar.MINUTE, amount);
         deliveryString = dateFormat2.format(cal.getTime());
-
+        foods.clear();
         Integer ID = updateLocation(block, row, seat, user);
         try {
             //String sql = "INSERT INTO ORDER(quantity, date, time, delivery_time, amount_due, user_ID, quantity_in_total, total_amount_due, payment_method) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -324,10 +339,11 @@ public class DB_Controller {
                 double width = 0;
                 double height = 0;
                 double volume = 0;
+                int prepTime = resultSet.getInt("preparation_time");
                 /*switch (type) {
                     case 1: foods.add(new Solid(0, price, title, nutrition, dietary, false, quantityAvailable, length, width, height));
                 }*/
-                foods.add(new Food(id, type, pic, price, title, nutrition, dietary, halaal, quantityAvailable, length, width, height, volume));
+                foods.add(new Food(id, type, pic, price, title, nutrition, dietary, halaal, quantityAvailable, length, width, height, volume, prepTime));
             }
             System.out.println("Number of food items = " + foods.size());
         } catch (Exception e) {
@@ -849,6 +865,10 @@ public class DB_Controller {
 
     public static String getTimeString() {
         return timeString;
+    }
+
+    public static int getAmount() {
+        return amount;
     }
 
     public static void insertOrderLine(ArrayList<FoodUpdate> foodUpdates) {
