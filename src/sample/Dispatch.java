@@ -1,3 +1,5 @@
+package sample;
+
 import java.util.*;
 
 /**
@@ -34,6 +36,13 @@ public class Dispatch {
 
     public void setJunction(Dispatch_Junction junction) {
         this.junction = junction;
+    }
+
+    /**
+     * Experiment 5 (order clustering optimisation)
+     */
+    public boolean isValidForOptimisation(Cluster cluster, Order order) {
+        return true;
     }
 
     //Clustering Functions
@@ -77,7 +86,7 @@ public class Dispatch {
                         or.addLink(o);
                         if (matchRecord == -1 && !junction.getProcessing()) {
                             matchRecord = i;
-                            if (clusters.get(i).getQuantity() >= clusterCapacity) {
+                            if (clusters.get(i).getQuantity() >= clusterCapacity) { //Checks to see if the clusters capacity is greater than the maximum capacity
                                 deleteClusters();
                                 clusters.get(i).update(o);
                                 junction.optimalPath(this, o);

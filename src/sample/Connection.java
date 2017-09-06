@@ -1,6 +1,9 @@
+package sample;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,6 +24,8 @@ public class Connection extends Thread {
     public String username;
     private String password;
     private String email;
+    private BoxPackaging boxPackaging = null;
+    private TimerThread timerThread = null;
 
     private static final String SIGN_UP = "#SIGN_UP";
     private static final String LOG_IN = "#VERIFY_LOGIN_DATA";
@@ -50,6 +55,8 @@ public class Connection extends Thread {
         try {
             out = new DataOutputStream(socket.getOutputStream());
             out.flush();
+            /*outObject = new ObjectOutputStream(socket.getOutputStream());
+            outObject.flush();*/
             in = new DataInputStream(socket.getInputStream());
 
             String command = "";
@@ -194,7 +201,7 @@ public class Connection extends Thread {
 
     private void sendFood() {
         outLock.lock();
-        //Solid food = (Solid) DB_Controller.foods.get(0);
+        //Solid food = (Solid) sample.DB_Controller.foods.get(0);
         try {
             out.writeUTF(GET_STOCK);
             out.writeInt(DB_Controller.foods.size()); //number of food items to be sent
@@ -241,7 +248,7 @@ public class Connection extends Thread {
                 out.writeDouble(volume);
             }
             out.flush();
-            System.out.println("Food is sent to phone");
+            System.out.println("sample.Food is sent to phone");
             DB_Controller.foods.clear();
             //objectOutputStream.flush();
         } catch (IOException e) {
@@ -511,8 +518,21 @@ public class Connection extends Thread {
         }
     }
 
+    public void sendBasket() {
+        try {
+            out.writeUTF("#BASKET");
+            ObjectOutputStream outObject = new ObjectOutputStream(socket.getOutputStream());
+            outObject.writeObject(boxPackaging.getBoxes());
+            outObject.flush();
+            boxPackaging = null;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void addToDesktop(Integer orderID, String block, String row, String seat, String user, String quantity, Double total, String time, ArrayList<FoodUpdate> foodUpdates) {
         outLock.lock();
+        ArrayList<Food> foods = new ArrayList<>();
         try {
             out.writeUTF("#ADD_TO_DESKTOP");
             out.writeUTF(String.valueOf(orderID));
@@ -530,21 +550,68 @@ public class Connection extends Thread {
                 out.writeInt(foodUpdate.getQuantity());
                 Food food = null;
                 for (Food f : DB_Controller.foods) {
-                    if (f.getId() == foodUpdate.getId())
+                    if (f.getId() == foodUpdate.getId()) {
                         food = f;
+                        food.setQuantity(foodUpdate.getQuantity());
+                        foods.add(food);
+                    }
                 }
                 if (food != null) {
                     out.writeInt(food.getImage().length);
                     out.write(food.getImage());
                     out.writeUTF(food.getTitle());
+                    System.out.println(food.getTitle());
                 }
             }
             out.flush();
+            if (boxPackaging == null) {
+                boxPackaging = new BoxPackaging(foods);
+                timerThread = new TimerThread();
+                timerThread.start();
+            } else {
+                boxPackaging.setFoods(foods);
+            }
+            boxPackaging.firstFitAlgorithm();
+            /*if (!timerThread.isAlive()) {
+                sendBasket();
+                *//*ObjectOutputStream outObject = new ObjectOutputStream(socket.getOutputStream());
+                outObject.writeObject(boxPackaging.getBoxes());
+                outObject.flush();*//*
+            }*/
             DB_Controller.foods.clear();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             outLock.unlock();
+        }
+    }
+
+    private class TimerThread extends Thread {
+        private double minute = 0.0;
+        private double second = 30.0;
+        private boolean stop = false;
+
+        @Override
+        public void run() {
+            super.run();
+            while (!stop) {
+                second--;
+                if (second == 0 && minute != 0) {
+                    minute--;
+                    second = 59.0;
+                }
+                if (minute == 0 && second == 0)
+                    stop = true;
+                if (boxPackaging.isFull())
+                    stop = true;
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    System.out.println(e.getMessage());
+                }
+                System.out.println("Timer:\t" + minute + "\t" + second);
+            }
+            sendBasket();
         }
     }
 

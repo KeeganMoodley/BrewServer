@@ -1,3 +1,5 @@
+package sample;
+
 import javafx.util.Pair;
 
 import java.io.FileOutputStream;
@@ -16,6 +18,7 @@ public class DB_Controller {
     private static ArrayList<User> users = new ArrayList<>();
     private static Connection connect = null;
     private static Statement stat = null;
+    private static Statement stat1 = null;
     private static Statement innerStat = null;
     private static String dateString;
     private static String deliveryString;
@@ -24,6 +27,7 @@ public class DB_Controller {
 
     static ArrayList<Food> foods = new ArrayList<>();
     private static int amount;
+    private static Main curMain;
 
     /*
     The below method opens the connection to the database and creates a statement
@@ -37,7 +41,9 @@ public class DB_Controller {
 
         connect = DriverManager.getConnection(url, user, password);
         stat = connect.createStatement();//Statement enabling methods to communicate with database.
+        stat1 = connect.createStatement();
         innerStat = connect.createStatement();
+        //curMain = main;
     }
 
     /*
@@ -129,7 +135,7 @@ public class DB_Controller {
             if (lo.getEmail().equals(email)) {
                 if (lo.getPassword().equals(password)) {
                     username = lo.getUsername();
-                    System.out.println("User " + username + " verified");
+                    System.out.println("sample.User " + username + " verified");
                     users.clear();
                     try {
                         CloseConnection();
@@ -209,6 +215,10 @@ public class DB_Controller {
                 }
             }
         }
+
+        System.out.println("Prep time:\t" + amount);
+        Main.time = amount; //Already in seconds (Using seconds for testing purposes)
+
         cal.add(Calendar.MINUTE, amount);
         deliveryString = dateFormat2.format(cal.getTime());
         foods.clear();
@@ -335,11 +345,43 @@ public class DB_Controller {
                 double length = rSet.getFloat("length");
                 double width = rSet.getFloat("width");
                 double height = rSet.getFloat("height");*/
+
                 double length = 0;
+
                 double width = 0;
                 double height = 0;
                 double volume = 0;
                 int prepTime = resultSet.getInt("preparation_time");
+
+                switch (type) {
+                    case 1: {
+                        ResultSet resultSetSolid = stat1.executeQuery("SELECT * FROM [SOLID] WHERE stock_ID = '" + id + "'");
+                        if (resultSetSolid.next()) {
+                            length = resultSetSolid.getFloat("length");
+                            width = resultSetSolid.getFloat("width");
+                            height = resultSetSolid.getFloat("height");
+                        }
+                        resultSetSolid.close();
+                        break;
+                    }
+                    case 2: {
+                        ResultSet resultSetLiquid = stat1.executeQuery("SELECT * FROM [LIQUID] WHERE stock_ID = '" + id + "'");
+                        if (resultSetLiquid.next())
+                            volume = resultSetLiquid.getFloat("volume");
+                        resultSetLiquid.close();
+                        break;
+                    }
+                    case 3: {
+                        ResultSet resultSetPackaged = stat1.executeQuery("SELECT * FROM [PACKAGED] WHERE stock_ID = '" + id + "'");
+                        if (resultSetPackaged.next()) {
+                            length = resultSetPackaged.getFloat("length");
+                            width = resultSetPackaged.getFloat("width");
+                            height = resultSetPackaged.getFloat("height");
+                        }
+                        resultSetPackaged.close();
+                        break;
+                    }
+                }
                 /*switch (type) {
                     case 1: foods.add(new Solid(0, price, title, nutrition, dietary, false, quantityAvailable, length, width, height));
                 }*/

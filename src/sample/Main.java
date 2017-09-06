@@ -1,3 +1,5 @@
+package sample;
+
 import javafx.util.Pair;
 
 import java.io.InputStream;
@@ -29,7 +31,7 @@ public class Main {
     private int dispatchNum = 0;
     public Double price = 0.0;
     private Double shift = 0.0;
-    private Integer time = 0;
+    public static Integer time = 0;
     private TimerThread timer = null;
     private Integer capacity = 0;
     private Boolean test = false;
@@ -44,7 +46,7 @@ public class Main {
             saved = DB_Controller.insertUser(username, email, password);
             if (saved.equals("both")) {
                 spectatorConnections.put(username, connection);
-                System.out.println("User: " + username + " has been stored");
+                System.out.println("sample.User: " + username + " has been stored");
                 connection.notifySaving(true, "nothing", event);
             } else if (saved.equals("email")) {
                 connection.notifySaving(false, "duplicateE", event);
@@ -70,7 +72,7 @@ public class Main {
             if (!username.equals("")) {
                 spectatorConnections.put(username, connection);
                 connection.username = username;
-                System.out.println("User " + username + " is active now");
+                System.out.println("sample.User " + username + " is active now");
                 connection.notifyVerification(true, username, event);
             } else {
                 System.out.println("Unable to verify user ...");
@@ -89,10 +91,10 @@ public class Main {
         try {
             if (username != null && !context.contains("@")) {
                 spectatorConnections.remove(username);
-                System.out.println("User " + username + " logout successfully");
+                System.out.println("sample.User " + username + " logout successfully");
             } else if (context.contains("@")) {
                 DB_Controller.deleteUser(username, context);
-                System.out.println("User " + username + " removal successfully");
+                System.out.println("sample.User " + username + " removal successfully");
             }
             connection.notifyLogout(true, context);
         } catch (Exception e) {
@@ -118,97 +120,97 @@ public class Main {
         doNotAdd = false;
         try {
             //if (setting.equals("no_setting")) {
-                String initialBlock = block;
-                String initialSeat = seat;
-                String oddCase = null;
-                String mappedOdd = "";
-                try {
-                    oddCase = merge[0].getKey();
-                    mappedOdd = blockConversions.get(oddCase);
-                } catch (NullPointerException e) {
+            String initialBlock = block;
+            String initialSeat = seat;
+            String oddCase = null;
+            String mappedOdd = "";
+            try {
+                oddCase = merge[0].getKey();
+                mappedOdd = blockConversions.get(oddCase);
+            } catch (NullPointerException e) {
+            }
+            String blockKey = "";
+            if (oddCase != null) {
+                if (block.equals(mappedOdd)) {
+                    blockKey = merge[1].getKey();
+                    block = blockConversions.get(blockKey);
+                    seat = String.valueOf(merge[1].getValue().getRows().get(Integer.parseInt(row)).getSeatCount() + Integer.parseInt(seat));
                 }
-                String blockKey = "";
-                if (oddCase != null) {
-                    if (block.equals(mappedOdd)) {
-                        blockKey = merge[1].getKey();
-                        block = blockConversions.get(blockKey);
-                        seat = String.valueOf(merge[1].getValue().getRows().get(Integer.parseInt(row)).getSeatCount() + Integer.parseInt(seat));
-                    }
-                }
-                Integer quant = Integer.parseInt(quantity);
-                //Double total = quant * price;
-                Block B = DB_Controller.returnRealBlock(block);
-                Block virtual = mapToVirtual(seat, B, null, row);
+            }
+            Integer quant = Integer.parseInt(quantity);
+            //Double total = quant * price;
+            Block B = DB_Controller.returnRealBlock(block);
+            Block virtual = mapToVirtual(seat, B, null, row);
 
-                boolean active = false;
-                int virtualInt = Integer.parseInt(virtual.getName());
-                if (dispatchConnections.get(virtual.getName()) != null) {
-                    active = true;
-                } else if (virtualInt % 2 != 0) {
-                    Integer nextDispatchInt = virtualInt + 1;
-                    Integer previousDispatchInt = virtualInt - 1;
-                    String nextDispatch = "";
-                    if (nextDispatchInt.equals(DB_Controller.getBlocks().size())) {
-                        nextDispatch = "0";
-                    } else {
-                        nextDispatch = String.valueOf(nextDispatchInt);
-                    }
-                    String previousDispatch = String.valueOf(previousDispatchInt);
-                    if (dispatchConnections.get(nextDispatch) != null && dispatchConnections.get(previousDispatch) != null) {
-                        active = true;
-                    }
-                }
-
-                if (active) {
-                    Integer orderID = DB_Controller.insertOrder(quantity, total, virtual.getName(), row, seat, user, foodUpdates, cash); //insert into order table
-                    DB_Controller.insertOrderLine(foodUpdates);
-                    Date dateStamp = new Date();
-                    Order newO = new Order(orderID, B, Integer.parseInt(row), quant, total, user, Integer.parseInt(seat), androidIndex, dateStamp);
-                    mapToVirtual(seat, B, newO, row);
-                    junction.insertOrder(newO);
-
-                    String time = DB_Controller.getTimeString();
-                    String date = DB_Controller.getDateString();
-                    if (!doNotAdd) {
-                        Integer blockName = Integer.parseInt(virtual.getName());
-                        if (blockName % 2 == 0) {
-                            Connection con = dispatchConnections.get(virtual.getName());
-                            con.addToDesktop(orderID, initialBlock, row, initialSeat, user, quantity, total, time, foodUpdates);
-                        } else {
-                            String prevDispatch = "";
-                            String nextDispatch = "";
-                            if (blockName != 0 && blockName != DB_Controller.getBlocks().size() - 1) {
-                                prevDispatch = String.valueOf(blockName - 1);
-                                nextDispatch = String.valueOf(blockName + 1);
-                            } else if (blockName != DB_Controller.getBlocks().size() - 1) {
-                                nextDispatch = String.valueOf(blockName + 1);
-                                prevDispatch = String.valueOf(DB_Controller.getBlocks().size() - 1);
-                            } else if (blockName != 0) {
-                                prevDispatch = String.valueOf(blockName - 1);
-                                nextDispatch = "0";
-                            } else {
-                                prevDispatch = String.valueOf(DB_Controller.getBlocks().size() - 1);
-                                nextDispatch = "0";
-                            }
-                            Connection con1 = dispatchConnections.get(prevDispatch);
-                            Connection con2 = dispatchConnections.get(nextDispatch);
-                            con1.addToDesktop(orderID, initialBlock, row, initialSeat, user, quantity, total, time, foodUpdates);
-                            con2.addToDesktop(orderID, initialBlock, row, initialSeat, user, quantity, total, time, foodUpdates);
-                        }
-                        if (!test)
-                            connection.notifyOrderInsertion(time, date, quantity, total, androidIndex, DB_Controller.getAmount());
-                    } else {
-                        doNotAdd = false;
-                        if (!test) {
-                            connection.notifyOrderInsertion(time, date, quantity, total, androidIndex, DB_Controller.getAmount());
-                            connection.notifyOrderDispatch(newO);
-                        }
-                    }
+            boolean active = false;
+            int virtualInt = Integer.parseInt(virtual.getName());
+            if (dispatchConnections.get(virtual.getName()) != null) {
+                active = true;
+            } else if (virtualInt % 2 != 0) {
+                Integer nextDispatchInt = virtualInt + 1;
+                Integer previousDispatchInt = virtualInt - 1;
+                String nextDispatch = "";
+                if (nextDispatchInt.equals(DB_Controller.getBlocks().size())) {
+                    nextDispatch = "0";
                 } else {
-                    connection.notifyDispatchDown();
+                    nextDispatch = String.valueOf(nextDispatchInt);
                 }
+                String previousDispatch = String.valueOf(previousDispatchInt);
+                if (dispatchConnections.get(nextDispatch) != null && dispatchConnections.get(previousDispatch) != null) {
+                    active = true;
+                }
+            }
+
+            if (active) {
+                Integer orderID = DB_Controller.insertOrder(quantity, total, virtual.getName(), row, seat, user, foodUpdates, cash); //insert into order table
+                DB_Controller.insertOrderLine(foodUpdates);
+                Date dateStamp = new Date();
+                Order newO = new Order(orderID, B, Integer.parseInt(row), quant, total, user, Integer.parseInt(seat), androidIndex, dateStamp);
+                mapToVirtual(seat, B, newO, row);
+                junction.insertOrder(newO);
+
+                String time = DB_Controller.getTimeString();
+                String date = DB_Controller.getDateString();
+                if (!doNotAdd) {
+                    Integer blockName = Integer.parseInt(virtual.getName());
+                    if (blockName % 2 == 0) {
+                        Connection con = dispatchConnections.get(virtual.getName());
+                        con.addToDesktop(orderID, initialBlock, row, initialSeat, user, quantity, total, time, foodUpdates);
+                    } else {
+                        String prevDispatch = "";
+                        String nextDispatch = "";
+                        if (blockName != 0 && blockName != DB_Controller.getBlocks().size() - 1) {
+                            prevDispatch = String.valueOf(blockName - 1);
+                            nextDispatch = String.valueOf(blockName + 1);
+                        } else if (blockName != DB_Controller.getBlocks().size() - 1) {
+                            nextDispatch = String.valueOf(blockName + 1);
+                            prevDispatch = String.valueOf(DB_Controller.getBlocks().size() - 1);
+                        } else if (blockName != 0) {
+                            prevDispatch = String.valueOf(blockName - 1);
+                            nextDispatch = "0";
+                        } else {
+                            prevDispatch = String.valueOf(DB_Controller.getBlocks().size() - 1);
+                            nextDispatch = "0";
+                        }
+                        Connection con1 = dispatchConnections.get(prevDispatch);
+                        Connection con2 = dispatchConnections.get(nextDispatch);
+                        con1.addToDesktop(orderID, initialBlock, row, initialSeat, user, quantity, total, time, foodUpdates);
+                        con2.addToDesktop(orderID, initialBlock, row, initialSeat, user, quantity, total, time, foodUpdates);
+                    }
+                    if (!test)
+                        connection.notifyOrderInsertion(time, date, quantity, total, androidIndex, DB_Controller.getAmount());
+                } else {
+                    doNotAdd = false;
+                    if (!test) {
+                        connection.notifyOrderInsertion(time, date, quantity, total, androidIndex, DB_Controller.getAmount());
+                        connection.notifyOrderDispatch(newO);
+                    }
+                }
+            } else {
+                connection.notifyDispatchDown();
+            }
             /*} else {
-                DB_Controller.initiateUpdate(block, row, seat, user);
+                sample.DB_Controller.initiateUpdate(block, row, seat, user);
                 connection.notifyLocationUpdate();
             }*/
         } catch (Exception e) {
@@ -260,11 +262,12 @@ public class Main {
         try {
             Integer orderID = DB_Controller.getOrderID(time, username);
             String block = DB_Controller.getBlockName(orderID);
-            //DB_Controller.removeOrder(time, username);
+            //sample.DB_Controller.removeOrder(time, username);
             junction.removeOrder(username, orderID, block);
             removeFromDesktop(block, orderID, username);
             connection.notifyOrderRemoval(true, time);
         } catch (Exception e) {
+            System.out.println("Order was not removed\t" + e.getMessage());
             connection.notifyOrderRemoval(false, time);
         } finally {
             connectionLock.unlock();
@@ -328,7 +331,7 @@ public class Main {
             if (updated.equals("both")) {
                 spectatorConnections.remove(tempUser);
                 spectatorConnections.put(user, connection);
-                System.out.println("User: " + tempUser + " has been updated to user: " + user);
+                System.out.println("sample.User: " + tempUser + " has been updated to user: " + user);
                 System.out.println("Email: " + tempEmail + " has been updated to email: " + email);
                 System.out.println("Cell-Phone: has been updated to: " + cell);
                 System.out.println("Home-Phone: has been updated to: " + phone);
@@ -336,7 +339,7 @@ public class Main {
             } else if (updated.equals("email")) {
                 spectatorConnections.remove(tempUser);
                 spectatorConnections.put(user, connection);
-                System.out.println("User: " + tempUser + " has been updated to user: " + user);
+                System.out.println("sample.User: " + tempUser + " has been updated to user: " + user);
                 System.out.println("Cell-Phone: has been updated to: " + cell);
                 System.out.println("Home-Phone: has been updated to: " + phone);
                 connection.notifyUpdating(false, "duplicateE", tempUser, tempEmail);
@@ -410,7 +413,7 @@ public class Main {
         dispatchLock.lock();
         try {
             dispatchConnections.put(dispatchName, connection);
-            System.out.println("Dispatch: " + dispatchName + " registered");
+            System.out.println("sample.Dispatch: " + dispatchName + " registered");
         } catch (Exception e) {
         } finally {
             dispatchLock.unlock();
@@ -529,7 +532,7 @@ public class Main {
 
             while (true) {
                 Socket socket = server.accept();
-                System.out.println("Connection has been established");
+                System.out.println("sample.Connection has been established");
 
                 Connection connection = new Connection(this, socket);
                 connection.start();
@@ -537,7 +540,7 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
             Thread.sleep(100);
-            System.out.println("Connection failed");
+            System.out.println("sample.Connection failed");
         } finally {
             server.close();
         }
@@ -632,10 +635,10 @@ public class Main {
         if (shift != 0.0) {
             entrance = firstBR.getRealName();
         }
-        outputStream.add("Dispatch Point: " + dispatch);
+        outputStream.add("sample.Dispatch Point: " + dispatch);
         outputStream.add("Entrance: " + entrance);
         outputStream.add("@");
-        outputStream.add("Block: " + initialReal);
+        outputStream.add("sample.Block: " + initialReal);
         Connection curC;
         for (ArrayList<Order> ar : structure) {
             for (int i = 0; i < ar.size(); i++) {
@@ -647,13 +650,13 @@ public class Main {
                 if (shift == 0.0) {
                     if (!curB.equals(initial)) {
                         outputStream.add("@");
-                        outputStream.add("Block: " + curBReal);
+                        outputStream.add("sample.Block: " + curBReal);
                         initial = curB;
                     }
                 } else {
                     if (!curBReal.equals(initialReal)) {
                         outputStream.add("@");
-                        outputStream.add("Block: " + curBReal);
+                        outputStream.add("sample.Block: " + curBReal);
                         initialReal = curBReal;
                     }
                 }
@@ -687,7 +690,7 @@ public class Main {
             writeExitToFile(outputStream, lastOr, l, r, d);
         } else {
             outputStream.add("@");
-            outputStream.add("Exit Block: " + lastOr.getRealBlock().getRealName());
+            outputStream.add("Exit sample.Block: " + lastOr.getRealBlock().getRealName());
         }
         try {
             DB_Controller.insertOrderHistory(structure, virtualDispatch);
@@ -743,14 +746,14 @@ public class Main {
             if (shift != 0.0) {
                 Integer blockIndex = Integer.parseInt(blockName);
                 Integer decreasedIndex = blockIndex - 1;
-                outputStream.add("Exit Block: " + decreasedIndex);
+                outputStream.add("Exit sample.Block: " + decreasedIndex);
             } else {
-                outputStream.add("Exit Block: " + blockName);
+                outputStream.add("Exit sample.Block: " + blockName);
                 outputStream.add("Direction: right");
             }
         } else {
             outputStream.add("@");
-            outputStream.add("Exit Block: " + blockName);
+            outputStream.add("Exit sample.Block: " + blockName);
             if (shift == 0.0)
                 outputStream.add("Direction: left");
         }
@@ -782,7 +785,7 @@ public class Main {
                 outputStream.remove(outputStream.get(outputStream.size() - 1));
             }
             order.setBlock(merge[0].getValue());
-            outputStream.add("Block: " + merge[0].getValue().getRealName());
+            outputStream.add("sample.Block: " + merge[0].getValue().getRealName());
             if (shift != 0.0) {
                 order.setRealSeat(order.getSeat() - seatCount);
             } else {
@@ -794,8 +797,8 @@ public class Main {
     public void deregisterDispatch(String key, Connection connection) {
         dispatchConnections.remove(connection);
         dispatchConnections.remove(key);
-        System.out.println("Dispatch Point: " + key + " successfully de-registered.");
-        System.out.println("Dispatch Point: " + key + " successfully removed.");
+        System.out.println("sample.Dispatch Point: " + key + " successfully de-registered.");
+        System.out.println("sample.Dispatch Point: " + key + " successfully removed.");
     }
 
     public String getMerge() {

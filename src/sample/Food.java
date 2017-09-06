@@ -1,3 +1,5 @@
+package sample;
+
 import java.io.Serializable;
 
 
@@ -10,6 +12,7 @@ public class Food implements Serializable {
     private String title, nutrition, dietary;
     private boolean halaal;
     private byte[] image;
+    private static final long serialVersionUID = 9140667418784579444L;
 
     public Food(int id, int type, byte[] image, double price, String title, String nutrition, String dietary, boolean halaal, int quantityAvailable, double length, double width, double height, double volume, int prepTime) {
         this.image = image;
@@ -146,9 +149,7 @@ public class Food implements Serializable {
     }
 
     public double getSize() {
-        if (volume == 0)
-            return length * width;
-        return volume;
+        return volume == 0 ? length * width * height : volume;
     }
 }
 

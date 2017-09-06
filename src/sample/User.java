@@ -1,4 +1,4 @@
-/**
+package sample; /**
  * Created by s213463695 on 2016/03/22.
  */
 import java.io.Serializable;

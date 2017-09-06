@@ -57,7 +57,7 @@ block_#
 34;234
 35;235
 timer
-180
+300
 cluster_capacity
 12
 beer_price
